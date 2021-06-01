@@ -1,0 +1,65 @@
+<script>
+    function getReport() {
+        var $report = $("#reportChoice").val();
+        return $.ajax({
+            url: '/students-smAdmin-deansOffice/action:dispatcher/',
+            data: {
+                controllerClass: "DeansLetterReportController",
+                action: 'viewReport',
+                report: $report
+            },
+            type: 'POST',
+            dataType: 'json',
+            success: function (json) {
+                $("#dlrReport").empty();
+                if ('msg' in json) {
+                    $("#dlrReport").append(json.msg);
+                } else {
+                    console.log("Unknown");
+                    $("#dlrReport").append('Unknown response');
+                }
+            },
+            error: function (xhr, status) {
+                console.log(xhr);
+                $("#dlrReport").empty();
+                $("#dlrReport").append(xhr.responseText);
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        $.extend($.fn.dataTable.defaults, {
+            stateSave: true,
+        });
+
+        $("#dlrMainPage").on('change', '#reportChoice', getReport);
+        $("#reportLoadingSpinner")
+            .ajaxStart(function () {
+                $(this).show();
+            })
+            .ajaxStop(function () {
+                $(this).hide();
+            });
+
+    });
+</script>
+
+<div id="dlrMainPage">
+    <h2 class="studentProfileHeader">Dean's Letter Reports</h2>
+    <form id="reportPicker" class="form-inline">
+        <label for="reportChoice">Report</label>
+        <select class="form-control reportPicker" id="reportChoice">
+            <option value="none" selected="true"></option>
+            <option value="step1">Step 1 Scores</option>
+            <option value="step2">Step 2 Scores</option>
+            <option value="bday">Birthdays</option>
+            <?php if ($currentUser->checkRole('developer')) { ?>
+                <option value="dlr">Dean's Letters</option>
+                <option value="parentAddress">Parent Address</option>
+            <?php } ?>
+        </select>
+        <i class="fa fa-spinner fa-spin fa-lg" id="reportLoadingSpinner" style="display:none;"></i>
+    </form>
+    <div id="dlrReport">
+    </div>
+</div>
